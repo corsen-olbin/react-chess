@@ -7,43 +7,45 @@ import './index.css';
 const backLine = ['R', 'k', 'B', 'K', 'Q', 'B', 'k', 'R'];
 
 function InitialState() {
-  var squares = Array(64);
+  var squares = new Array(8).fill(null).map(i => new Array(8).fill(null));
 
   // black side
-  backLine.forEach((x, i) => { 
-    squares[i] = {
+  backLine.forEach((x, i) => {
+    squares[0][i] = {
       color: 'black',
-      type: x 
+      type: x
     };
   });
 
-  for(let i = 0; i < 8; i++) {
-    squares[8+i] = {
+  for (let i = 0; i < 8; i++) {
+    squares[1][i] = {
       color: 'black',
       type: 'p'
     };
   };
 
   //middle
-  for(let i = 16; i < 48; i++){
-    squares[i] = {
-      color: null,
-      type: null
-    };
+  for (let i = 2; i < 6; i++) {
+    for (let j = 0; j < 8; j++) {
+      squares[i][j] = {
+        color: null,
+        type: null
+      };
+    }
   }
 
   // white side
-  for(let i = 0; i < 8; i++) {
-    squares[48+i] = {
+  for (let i = 0; i < 8; i++) {
+    squares[6][i] = {
       color: 'white',
       type: 'p'
     };
   };
 
-  backLine.forEach((x, i) => { 
-    squares[56+i] = {
+  backLine.forEach((x, i) => {
+    squares[7][i] = {
       color: 'white',
-      type: x 
+      type: x
     };
   });
 
@@ -68,8 +70,8 @@ class Game extends React.Component {
   }
 
   movePiece(squares, originalLoc, newLoc) {
-    squares[newLoc] = squares[originalLoc];
-    squares[originalLoc] = {
+    squares[newLoc.row][newLoc.column] = squares[originalLoc.row][originalLoc.column];
+    squares[originalLoc.row][originalLoc.column] = {
       color: null,
       type: null
     }
@@ -82,7 +84,7 @@ class Game extends React.Component {
     });
   }
 
-  handleClick(i) {
+  handleClick(i, j) {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     const isSelectState = this.state.isSelectState;
@@ -93,19 +95,19 @@ class Game extends React.Component {
     var newSquares;
 
     if (isSelectState) {
-      if(!squares[i].type) {
+      if (!squares[i][j].type) {
         this.setStatus("That piece doesn't exist!");
         return;
       }
-      status = 'Square ' + i + ' Selected';
+      status = 'Square (' + i + ', ' + j + ') Selected';
       newSquares = squares;
     }
     else {
-      if(i === selectedSquare) {
+      if (i === selectedSquare) {
         return;
-      }      
+      }
       else if (selectedSquare != null) {
-        newSquares = this.movePiece(squares, selectedSquare, i);
+        newSquares = this.movePiece(squares, selectedSquare, { row: i, column: j });
       }
     }
 
@@ -113,14 +115,14 @@ class Game extends React.Component {
       history: history.concat([{
         squares: newSquares,
         moveMade: {
-          column: i % 3,
-          row: Math.floor(i / 3)
+          row: i,
+          column: j
         }
       }]),
       stepNumber: history.length,
       blackIsNext: !this.state.blackIsNext,
       isSelectState: !this.state.isSelectState,
-      selectedSquare: isSelectState ? i : null,
+      selectedSquare: isSelectState ? { row: i, column: j } : null,
       status: status
     });
   }
@@ -148,7 +150,6 @@ class Game extends React.Component {
         </li>
       )
     });
-    var render = Array(64);
 
     // if (winner) {
     //   status = 'Winner: ' + winner;
@@ -162,7 +163,7 @@ class Game extends React.Component {
         <div className="game-board">
           <Board
             squares={current.squares}
-            onClick={(i) => this.handleClick(i)}
+            onClick={(i, j) => this.handleClick(i, j)}
           />
         </div>
         <div className="game-info">
